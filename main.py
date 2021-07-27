@@ -1,6 +1,4 @@
 import json
-import os
-import enchant
 from typing import Dict, List
 from Bio import pairwise2
 from Bio.Seq import Seq
@@ -10,8 +8,6 @@ import random
 # LENGTH: min length of substring
 K = 2
 LENGTH = 11
-
-
 
 # bellow are functions, process starts after the line (if __name__ == '__main__')
 
@@ -76,38 +72,6 @@ def create_test_targets(lst: List[str], length: int) -> str:
     return s
 
 
-def dynamic_lcs(s1: str, s2: str, k: int, length: int):
-    """
-
-    :param s1: sequence
-    :param s2: sequence
-    :param k: minimum number of mismatches allowed
-    :param length: length of substrings
-    :return: TBD
-    """
-    substrings = []
-    mis_count = 0
-    matrix = [[(1, 1) for k in range(len(s2) + 1)] for l in range(len(s1) + 1)]
-    for i in range(len(s1) + 1):
-        for j in range(len(s2) + 1):
-            if i == 1 or j == 1:
-                matrix[i][j] = (1, 1)
-            elif s1[i - 1] == s2[j - 1]:
-                matrix[i][j] = (matrix[i - 1][j - 1][0] + 1, matrix[i - 1][j - 1][1])
-            elif s1[i - 1] != s2[j - 1] and matrix[i - 1][j - 1][1] < k and matrix[i - 1][j - 1][0] > 0:
-                matrix[i][j] = (matrix[i - 1][j - 1][0] + 1, matrix[i - 1][j - 1][1] + 1)
-            else:
-                matrix[i][j] = (1, 1)
-            if matrix[i][j][0] >= length - k:
-                substrings.append((i, j))
-                print(s1[i - length: i - length + length])
-                print(s2[j - length: j - length + length])
-                print("\n")
-    for i in matrix:
-        print(i)
-    return
-
-
 # helper function for lcs_hamming
 def hamming_distance(s1: str, s2: str):
     if len(s1) != len(s2):
@@ -141,9 +105,9 @@ def lcs_hamming(s1: str, s2: str, k: int, length: int):
 
 
 def lcs_hamming_only_matches(s1: str, s2: str, k: int, length: int):
-    '''
+    """
     This lcs use hamming distance as string comparison method.
-    '''
+    """
     count = 0
     for i in range(0, len(s1) - length + 1):
         for j in range(0, len(s2) - length + 1):
@@ -176,9 +140,7 @@ def lcs_pairwise(s1: str, s2: str, k: int, length: int):
         print("")
 
 
-
 # read from files function bellow. require actual chromosome files to implement them
-
 def read_query_name(file_name: str, query_name: List[str]) -> None:
     file = open(file_name)
     query_name.extend(file.read().split(" "))
@@ -297,11 +259,11 @@ if __name__ == '__main__':
     # print('bellow are tests for different distance function\n')
     #
     # print('testing for multiple mismatches using hamming')
-    # s1 = "abcdefzzzzzzzzzzhijklmzzzzzzzz"
-    # s2 = "xbxdefyyyyyyyyyyhxjxlmyyyyyyyabxdef"
-    # print(s1)
-    # print(s2)
-    # lcs_hamming(s1, s2, 2, 6)
+    s1 = "abcdefzzzzzzzzzzhijklmzzzzzzzz"
+    s2 = "xbxdefyyyyyyyyyyhxjxlmyyyyyyyabxdef"
+    print(s1)
+    print(s2)
+    lcs_hamming_only_matches(s1, s2, 2, 6)
     # print("\n")
     #
     # print('testing for no mismatches using pairwise')
@@ -316,5 +278,4 @@ if __name__ == '__main__':
     # s5 = ''
     # lcs_hamming(s4, s5, K, LENGTH)
     # lcs_pairwise(s4, s5, K, LENGTH)
-    # dynamic_lcs(s1, s2, 1, 4)
 

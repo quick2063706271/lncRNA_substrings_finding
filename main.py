@@ -6,8 +6,8 @@ import random
 
 # K: number of mismatches allowed in substring
 # LENGTH: min length of substring
-K = 2
-LENGTH = 11
+K = 6
+LENGTH = 20
 
 # bellow are functions, process starts after the line (if __name__ == '__main__')
 
@@ -115,7 +115,7 @@ def lcs_hamming_only_matches(s1: str, s2: str, k: int, length: int):
             sub2 = s2[j: j + length]
             result = hamming_distance(sub1, sub2)
             if result <= k:
-                print(str(i) + " " + str(j) + " " + str(length - result) + " " +
+                print(str(i) + " " + str(j) + " " + str(result) + " " +
                       sub1 + " " + sub2, end="\n")
                 count += 1
     print("total matches: " + str(count))
@@ -259,11 +259,11 @@ if __name__ == '__main__':
     # print('bellow are tests for different distance function\n')
     #
     # print('testing for multiple mismatches using hamming')
-    s1 = "abcdefzzzzzzzzzzhijklmzzzzzzzz"
-    s2 = "xbxdefyyyyyyyyyyhxjxlmyyyyyyyabxdef"
-    print(s1)
-    print(s2)
-    lcs_hamming_only_matches(s1, s2, 2, 6)
+    # s1 = "abcdefzzzzzzzzzzhijklmzzzzzzzz"
+    # s2 = "xbxdefyyyyyyyyyyhxjxlmyyyyyyyabxdef"
+    # print(s1)
+    # print(s2)
+    # lcs_hamming_only_matches(s1, s2, 2, 6)
     # print("\n")
     #
     # print('testing for no mismatches using pairwise')

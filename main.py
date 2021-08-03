@@ -1,13 +1,22 @@
 import json
 from typing import Dict, List
-from Bio import pairwise2
+from Bio import pairwise2, SeqIO
 from Bio.Seq import Seq
 import random
 
 # K: number of mismatches allowed in substring
 # LENGTH: min length of substring
-K = 6
-LENGTH = 20
+K_AND_LENGTH = [
+    (0, 5),
+    (1, 5),
+    (0, 6),
+    (1, 6),
+    (0, 7),
+    (1, 7),
+    (0, 8),
+    (1, 8),
+    (2, 8)
+]
 
 # bellow are functions, process starts after the line (if __name__ == '__main__')
 
@@ -115,11 +124,10 @@ def lcs_hamming_only_matches(s1: str, s2: str, k: int, length: int):
             sub2 = s2[j: j + length]
             result = hamming_distance(sub1, sub2)
             if result <= k:
-                print(str(i) + " " + str(j) + " " + str(result) + " " +
-                      sub1 + " " + sub2, end="\n")
+                # print(str(i) + " " + str(j) + " " + str(result) + " " + sub1 + " " + sub2, end="\n")
                 count += 1
-    print("total matches: " + str(count))
-    return
+    # print("total matches: " + str(count))
+    return count
 
 
 def lcs_pairwise(s1: str, s2: str, k: int, length: int):
@@ -160,15 +168,24 @@ def read_query_from_json(file_name: str, query: Dict, query_name: List[str]) -> 
     return
 
 
-def read_target(dna_file: str, dnas: Dict) -> None:
-    pass
+def read_target(file_name: str, targets: Dict) -> None:
+    for r in SeqIO.parse("dmel-all-intron-r6.40.fasta", "fasta"):
+        if r.description.__contains__("loc=Y"):
+            targets[r.name] = r.seq
 
 
 def read_relation_file(relation_file: str, relations: Dict) -> None:
     pass
 
 
+def targets_query_compare(query: List[str], targets: List[str], k, length):
+    for q in query:
+        for target in targets:
+            lcs_hamming_only_matches(q, target, k, length)
+
+
 if __name__ == '__main__':
+
 
     # 1. initialization
     query = {}  # long non-coding rna
@@ -209,50 +226,32 @@ if __name__ == '__main__':
     #     'chromo2': ['rna2'],
     #     'chromo3': ['rna3']
     # }
-    targets = {
-        'chromo1': Seq(
-            'TAGCAGCTACTMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMATGCACATAAANNNNNNNNNNNNNNNNATJJJJJJJJJJJJJGGTCTGTGLLLLLLLLLLLLLLLLLAGAGTCGCAGA'
-        ),
-        'chromo2': Seq(
-            'GGTAGAGTGTGAATAATAATAGCGTCGCACCCAGTCTAAAGCTCAACATAGGCTAGCTGTACGTATTGATTCCATCAAACTATTAATTAATAAGAGCATCGTCGTCCTCTTCGGCTAAGACGTTTCACCAAACCAACAGATTCACTAGCCAACACCGATTTCGATAGGAAGACCCCTGTCAAGTTTCCGAGAGTCAAAGATTTAACCCAGTGTTGCTTAGGCAGTGGCACGAGTGGGCTCCGTGTTAGCGTTTGATATTCAGTGAGCGCCGGGTGAGTCTTGGGTTCAAAGTCGAGTAATGCGCGGTTAGCGGCGAATTATATAATGACTAATAAGTGTCCGGCTAAAAATCGCCGGGGTCCAGTGCCATCGTACACTTTAAACGTCATGAAAGGGCCGA'
-        ),
-        'chromo3': Seq(
-            'TTCTGTCCGTTACTTCCCGCCCGTCGGTGATATCTAGCTGGCCACCATTCGTGCGTGAGTGTGTGTGTGTGATATGAGGAGAGCCGAACATTAGATGCTGGGGTAAAATGGTAGGAAAACATGCAGTGTCAGGGTCTTCGGGTTAATGCGCGGTTTCAGCCTAGCTGTCAGTTAGCAGTGAATCTGATTCGATAGTTCTCCAAAGTCATTACGTTGTCGCTCCATAAGATACAGAAGACAAACAATGTGAAATGTAGAGATCCTCATAGAGGGAACTATTCCGGTCGGTGAAAGGGTAAGGTACCAGTAGTCTGGCGGGAGGCTGGGGCTTGGCGGCGTTAAATTGAAATTATACCGACGTGTTGTCTCAATGGCGCAGGAAGAAGAGGTTAGACCGCCCCAACAAAATTTCGGTGGGTAAAAGGTAGTTTCTGTTGCTAATAAACATAAATTATTTTGGATGCACGTCCAAAGCCGTAACTCGGCTCATACGCGTCTGG'
-        ),
-        'chromo4': Seq(
-            'CTTAGTTGAGCGTGCGTGGCTTGACCTGCGTGTGCTGCATCCCTACAAGT'
-        )
 
-    }
-    targets_to_query = {
-        'chromo1': ['CR32218'],
-        'chromo2': ['CR42657'],
-        'chromo3': ['CR43193'],
-        'chromo4': ['CR43622']
-    }
 
-    # 3. get their reversed complements and store data in hashtable (dictionary here in python)
-
-    for lncRNA_key in query.keys():
-        reversed_query[lncRNA_key] = ""
-        reversed_query[lncRNA_key] = query[lncRNA_key].reverse_complement()
-
-    # for current version ignore reverse complement
-    reversed_query = query  # delete this line for the final version *
 
     # 4. use lcs to find common substring
+    result = []
 
-    gene_to_substring = dict.fromkeys(targets_to_query.keys(), [])
-    # iterate over genes
-    for target in targets_to_query.keys():
-        gene_to_substring[target] = targets_to_query[target].copy()
-        # iterate over lncRNAs
-        for i in range(len(targets_to_query[target])):
-            lncRNA = targets_to_query[target][i]
-            print('query: ' + reversed_query[lncRNA])
-            print('targets: ' + targets[target])
-            lcs_hamming_only_matches(str(reversed_query[lncRNA]), str(targets[target]), K, LENGTH)
-            print("\n")
+    for pair in K_AND_LENGTH:
+        K = pair[0]
+        LENGTH = pair[1]
+        for key in query.keys():
+            q = query[key]
+            num = 0
+            for target in targets.values():
+                num += lcs_hamming_only_matches(str(q), str(target), K, LENGTH)
+            result.append([key, K, LENGTH, num])
+
+
+    # # iterate over genes
+    # for target in targets.keys():
+    #     # iterate over lncRNAs
+    #     for i in range(len(query)):
+    #         lncRNA = targets_to_query[target][i]
+    #         print('query: ' + query[lncRNA])
+    #         print('targets: ' + targets[target])
+    #         lcs_hamming_only_matches(str(query[lncRNA]), str(targets[target]), K, LENGTH)
+    #         print("\n")
 
     # gene_to_substring and gene_to_lncRNAs are corresponding
 

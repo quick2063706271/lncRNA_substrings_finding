@@ -130,6 +130,25 @@ def lcs_hamming_only_matches(s1: str, s2: str, k: int, length: int):
     return count
 
 
+def lcs_hamming_only_matches_0_1(s1: str, s2: str, length: int):
+    """
+    This lcs use hamming distance as string comparison method.
+    """
+    count_0 = 0
+    count_1 = 0
+    for i in range(0, len(s1) - length + 1):
+        for j in range(0, len(s2) - length + 1):
+            sub1 = s1[i: i + length]
+            sub2 = s2[j: j + length]
+            result = hamming_distance(sub1, sub2)
+            if result <= 0:
+                # print(str(i) + " " + str(j) + " " + str(result) + " " + sub1 + " " + sub2, end="\n")
+                count_0 += 1
+            if result <= 1:
+                count_1 += 1
+    # print("total matches: " + str(count))
+    return [count_0, count_1]
+
 def lcs_pairwise(s1: str, s2: str, k: int, length: int):
     """
     This lcs use pairwise function from biopython as string comparison method.
@@ -230,19 +249,22 @@ if __name__ == '__main__':
 
 
     # 4. use lcs to find common substring
-    result = []
-
-    for pair in K_AND_LENGTH:
-        K = pair[0]
-        LENGTH = pair[1]
+    results = []
+    l = [6]
+    for length in l:
         for key in query.keys():
             q = query[key]
-            num = 0
+            result = [0, 0]
             for target in targets.values():
-                num += lcs_hamming_only_matches(str(q), str(target), K, LENGTH)
-            result.append([key, K, LENGTH, num])
+                a = lcs_hamming_only_matches_0_1(str(q), str(target), length)
+                result[0] += a[0]
+                result[1] += a[1]
+            results.append([key, 0, length, result[0]])
+            results.append([key, 1, length, result[1]])
+            print(results)
 
-
+    for l in results:
+        print(results)
     # # iterate over genes
     # for target in targets.keys():
     #     # iterate over lncRNAs

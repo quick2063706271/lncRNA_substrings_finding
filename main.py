@@ -3,6 +3,7 @@ from typing import Dict, List
 from Bio import pairwise2, SeqIO
 from Bio.Seq import Seq
 import random
+import pandas as pd
 
 # K: number of mismatches allowed in substring
 # LENGTH: min length of substring
@@ -113,7 +114,7 @@ def lcs_hamming(s1: str, s2: str, k: int, length: int):
     return
 
 
-def lcs_hamming_only_matches(s1: str, s2: str, k: int, length: int):
+def lcs_hamming_only_matches(s1: str, s2: str, k: int, length: int, matches_lst: List):
     """
     This lcs use hamming distance as string comparison method.
     """
@@ -124,30 +125,33 @@ def lcs_hamming_only_matches(s1: str, s2: str, k: int, length: int):
             sub2 = s2[j: j + length]
             result = hamming_distance(sub1, sub2)
             if result <= k:
-                # print(str(i) + " " + str(j) + " " + str(result) + " " + sub1 + " " + sub2, end="\n")
+                matches_lst.append([i, j, result, sub1, sub2])
                 count += 1
     # print("total matches: " + str(count))
     return count
 
 
-def lcs_hamming_only_matches_0_1(s1: str, s2: str, length: int):
+def lcs_hamming_only_matches_with_many_k(s1: str, s2: str, ks: List[int], length: int, matches_lst: List, query_name, target_name):
     """
     This lcs use hamming distance as string comparison method.
     """
-    count_0 = 0
-    count_1 = 0
+    file_name = './matches_' + str(length) + '.txt'
+    f = open(file_name, mode='a')
+    count = {}
+    for k in ks:
+        count[k] = 0
     for i in range(0, len(s1) - length + 1):
         for j in range(0, len(s2) - length + 1):
             sub1 = s1[i: i + length]
             sub2 = s2[j: j + length]
             result = hamming_distance(sub1, sub2)
-            if result <= 0:
-                # print(str(i) + " " + str(j) + " " + str(result) + " " + sub1 + " " + sub2, end="\n")
-                count_0 += 1
-            if result <= 1:
-                count_1 += 1
+            for k in ks:
+                if result <= k:
+                    # matches_lst.append([query_name, target_name, i, j, result, sub1, sub2])
+                    f.write(query_name + ',' + target_name + ',' + str(i) + ',' + str(j) + ',' + str(k)+ ',' + str(sub1) + ',' + sub2 + '\n')
+                    count[k] += 1
     # print("total matches: " + str(count))
-    return [count_0, count_1]
+    return count
 
 def lcs_pairwise(s1: str, s2: str, k: int, length: int):
     """
@@ -188,8 +192,8 @@ def read_query_from_json(file_name: str, query: Dict, query_name: List[str]) -> 
 
 
 def read_target(file_name: str, targets: Dict) -> None:
-    for r in SeqIO.parse("dmel-all-intron-r6.40.fasta", "fasta"):
-        if r.description.__contains__("loc=Y"):
+    for r in SeqIO.parse(file_name, "fasta"):
+        if r.description.__contains__("loc=Y") and r.name == 'Y':
             targets[r.name] = r.seq
 
 
@@ -197,10 +201,58 @@ def read_relation_file(relation_file: str, relations: Dict) -> None:
     pass
 
 
-def targets_query_compare(query: List[str], targets: List[str], k, length):
-    for q in query:
-        for target in targets:
-            lcs_hamming_only_matches(q, target, k, length)
+# multiple length
+# remember to test
+
+def target_queries_lcs(query: Dict, targets: Dict, ks: List[int], length: int, matches_lst: List, results: List):
+    for key in query.keys():
+        q = query[key]
+        target_query_lcs(q, targets, ks, length, matches_lst, results)
+    return
+
+
+def target_query_lcs_multi_lens(query_name: str, query: str, targets: Dict, ks: List[int], lens: List[int], matches_lst: List, results: List):
+    for length in lens:
+        target_query_lcs(query_name, query, targets, ks, length, matches_lst, results)
+    return
+
+
+def target_query_lcs(query_name: str, query: str, targets: Dict, ks: List[int], length: int, matches_lst: List, results: List):
+    """
+    Single query search against all targets with multiple mismatches k but same length (frame). Add the result to
+    matches_lst and results
+    :param query:
+    :param targets:
+    :param ks:
+    :param length:
+    :param matches_lst:
+    :param results:
+    :return:
+    """
+    file_name = './results_' + str(length) + '.txt'
+    f = open(file_name, mode='a')
+    count = {}
+    for k in ks:
+        count[k] = 0
+    for target_key in targets.keys():
+        target = targets[target_key]
+        a = lcs_hamming_only_matches_with_many_k(str(query), str(target), ks, length, matches_lst, query_name, target_key)
+        for k in count.keys():
+            count[k] += a[k]
+        pass
+    for k in count.keys():
+        f.write(query_name + ',' + str(k) + ',' + str(length) + ',' + str(count[k]) + '\n')
+    return
+
+
+def reversed_targets_and_search(query_name: str, query: str, targets: Dict[str, Seq], ks: List[int], lens: List[int], matches_lst: List, results: List):
+    reversed_targets = {}
+    for target_name in targets.keys():
+        reversed_targets[target_name] = targets[target_name].reverse_complement()
+    target_query_lcs_multi_lens(query_name, query, reversed_targets, ks, lens, matches_lst, results)
+    return
+
+
 
 
 if __name__ == '__main__':
@@ -218,7 +270,7 @@ if __name__ == '__main__':
     # file names
     query_file = ''
     query_sequence_file = './ncRNA_genes_fb_2021_02.json'
-    dna_file = ''
+    dna_file = './dmel-all-chromosome-r6.40.fasta'
     relation_file = ''
     query_name_file = './lncRNAs.txt'
 
@@ -249,22 +301,35 @@ if __name__ == '__main__':
 
 
     # 4. use lcs to find common substring
-    results = []
-    l = [6]
-    for length in l:
-        for key in query.keys():
-            q = query[key]
-            result = [0, 0]
-            for target in targets.values():
-                a = lcs_hamming_only_matches_0_1(str(q), str(target), length)
-                result[0] += a[0]
-                result[1] += a[1]
-            results.append([key, 0, length, result[0]])
-            results.append([key, 1, length, result[1]])
-            print(results)
 
-    for l in results:
-        print(results)
+
+
+    results = []
+    matches_lst = []
+    lens = [23]
+    ks = [1, 2, 3]
+    reversed_targets_and_search('CR32218', str(query['CR32218']), targets, ks, lens, matches_lst, results)
+
+    # for length in lens:
+    #     file = pd.read_csv('./matches_' + str(length) + '.txt', header=None)
+    #     file.to_csv('./matches_' + str(length) + '.csv', header=None)
+
+    # for length in l:
+    #     for key in query.keys():
+    #         q = query[key]
+    #         result = [0, 0, 0]
+    #         for target in targets.values():
+    #             a = lcs_hamming_only_matches(str(q), str(target), length)
+    #             result[0] += a[0]
+    #             result[1] += a[1]
+    #             result[2] += a[2]
+    #         results.append([key, 0, length, result[0]])
+    #         results.append([key, 1, length, result[1]])
+    #         results.append([key, 2, length, result[2]])
+    #         print(results)
+
+    # for l in results:
+    #     print(results)
     # # iterate over genes
     # for target in targets.keys():
     #     # iterate over lncRNAs

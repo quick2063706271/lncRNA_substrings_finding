@@ -3,6 +3,7 @@ from typing import Dict, List
 from Bio import pairwise2, SeqIO
 from Bio.Seq import Seq
 import random
+import distance
 import pandas as pd
 
 # K: number of mismatches allowed in substring
@@ -84,13 +85,8 @@ def create_test_targets(lst: List[str], length: int) -> str:
 
 # helper function for lcs_hamming
 def hamming_distance(s1: str, s2: str):
-    if len(s1) != len(s2):
-        return
-    distance = 0
-    for i in range(len(s1)):
-        if s1[i] != s2[i]:
-            distance += 1
-    return distance
+    # use distance package instead
+    return distance.hamming(s1, s2)
 
 
 def lcs_hamming(s1: str, s2: str, k: int, length: int):
@@ -151,6 +147,7 @@ def lcs_hamming_only_matches_with_many_k(s1: str, s2: str, ks: List[int], length
                     f.write(query_name + ',' + target_name + ',' + str(i) + ',' + str(j) + ',' + str(k)+ ',' + str(sub1) + ',' + sub2 + '\n')
                     count[k] += 1
     # print("total matches: " + str(count))
+    f.close()
     return count
 
 def lcs_pairwise(s1: str, s2: str, k: int, length: int):
@@ -193,7 +190,7 @@ def read_query_from_json(file_name: str, query: Dict, query_name: List[str]) -> 
 
 def read_target(file_name: str, targets: Dict) -> None:
     for r in SeqIO.parse(file_name, "fasta"):
-        if r.description.__contains__("loc=Y") and r.name == 'Y':
+        if r.description.__contains__("loc=Y"):
             targets[r.name] = r.seq
 
 
@@ -204,11 +201,7 @@ def read_relation_file(relation_file: str, relations: Dict) -> None:
 # multiple length
 # remember to test
 
-def target_queries_lcs(query: Dict, targets: Dict, ks: List[int], length: int, matches_lst: List, results: List):
-    for key in query.keys():
-        q = query[key]
-        target_query_lcs(q, targets, ks, length, matches_lst, results)
-    return
+
 
 
 def target_query_lcs_multi_lens(query_name: str, query: str, targets: Dict, ks: List[int], lens: List[int], matches_lst: List, results: List):
@@ -242,6 +235,7 @@ def target_query_lcs(query_name: str, query: str, targets: Dict, ks: List[int], 
         pass
     for k in count.keys():
         f.write(query_name + ',' + str(k) + ',' + str(length) + ',' + str(count[k]) + '\n')
+    f.close()
     return
 
 
@@ -251,6 +245,14 @@ def reversed_targets_and_search(query_name: str, query: str, targets: Dict[str, 
         reversed_targets[target_name] = targets[target_name].reverse_complement()
     target_query_lcs_multi_lens(query_name, query, reversed_targets, ks, lens, matches_lst, results)
     return
+
+
+def targets_queries_lcs(query: Dict, targets: Dict, ks: List[int], lens: List[int], matches_lst: List, results: List):
+    for key in query.keys():
+        q = query[key]
+        reversed_targets_and_search(key, q, targets, ks, lens, matches_lst, results)
+    return
+
 
 
 
@@ -270,14 +272,15 @@ if __name__ == '__main__':
     # file names
     query_file = ''
     query_sequence_file = './ncRNA_genes_fb_2021_02.json'
-    dna_file = './dmel-all-chromosome-r6.40.fasta'
+    chrom_file = './dmel-all-chromosome-r6.40.fasta'
+    intron_file = './dmel-all-intron-r6.40.fasta'
     relation_file = ''
     query_name_file = './lncRNAs.txt'
 
     # read files
     read_query_name(query_name_file, query_name)
     read_query_from_json(query_sequence_file, query, query_name)
-    read_target(dna_file, targets)
+    read_target(intron_file, targets)
     read_relation_file(relation_file, targets_to_query)
 
     # Here are some data for testing
@@ -306,9 +309,9 @@ if __name__ == '__main__':
 
     results = []
     matches_lst = []
-    lens = [23]
-    ks = [1, 2, 3]
-    reversed_targets_and_search('CR32218', str(query['CR32218']), targets, ks, lens, matches_lst, results)
+    lens = [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+    ks = [0, 1, 2]
+    targets_queries_lcs(query, targets, ks, lens, matches_lst, results)
 
     # for length in lens:
     #     file = pd.read_csv('./matches_' + str(length) + '.txt', header=None)

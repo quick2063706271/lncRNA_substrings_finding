@@ -133,19 +133,23 @@ def lcs_hamming_only_matches_with_many_k(s1: str, s2: str, ks: List[int], length
     """
     file_name = './matches_' + str(length) + '.txt'
     f = open(file_name, mode='a')
-    count = {}
-    for k in ks:
-        count[k] = 0
+    count = [0, 0, 0]
     for i in range(0, len(s1) - length + 1):
         for j in range(0, len(s2) - length + 1):
             sub1 = s1[i: i + length]
             sub2 = s2[j: j + length]
             result = hamming_distance(sub1, sub2)
-            for k in ks:
-                if result <= k:
+            if result <= 0:
                     # matches_lst.append([query_name, target_name, i, j, result, sub1, sub2])
-                    f.write(query_name + ',' + target_name + ',' + str(i) + ',' + str(j) + ',' + str(k)+ ',' + str(sub1) + ',' + sub2 + '\n')
-                    count[k] += 1
+                f.write(query_name + ',' + target_name + ',' + str(i) + ',' + str(j) + ',' + str(k)+ ',' + str(sub1) + ',' + sub2 + '\n')
+                count[0] += 1
+            if result <= 1:
+                f.write(query_name + ',' + target_name + ',' + str(i) + ',' + str(j) + ',' + str(k)+ ',' + str(sub1) + ',' + sub2 + '\n')
+                count[1] += 1
+            if result <= 2:
+                f.write(query_name + ',' + target_name + ',' + str(i) + ',' + str(j) + ',' + str(k)+ ',' + str(sub1) + ',' + sub2 + '\n')
+                count[2] += 1
+
     # print("total matches: " + str(count))
     f.close()
     return count
@@ -190,7 +194,7 @@ def read_query_from_json(file_name: str, query: Dict, query_name: List[str]) -> 
 
 def read_target(file_name: str, targets: Dict) -> None:
     for r in SeqIO.parse(file_name, "fasta"):
-        if r.description.__contains__("loc=Y"):
+        if r.description.__contains__("loc=Y") and r.name == 'Y':
             targets[r.name] = r.seq
 
 
@@ -224,17 +228,17 @@ def target_query_lcs(query_name: str, query: str, targets: Dict, ks: List[int], 
     """
     file_name = './results_' + str(length) + '.txt'
     f = open(file_name, mode='a')
-    count = {}
-    for k in ks:
-        count[k] = 0
+    count = [0, 0, 0]
     for target_key in targets.keys():
         target = targets[target_key]
         a = lcs_hamming_only_matches_with_many_k(str(query), str(target), ks, length, matches_lst, query_name, target_key)
-        for k in count.keys():
-            count[k] += a[k]
-        pass
-    for k in count.keys():
-        f.write(query_name + ',' + str(k) + ',' + str(length) + ',' + str(count[k]) + '\n')
+        count[0] += a[0]
+        count[1] += a[1]
+        count[2] += a[2]
+
+    f.write(query_name + ',' + str(0) + ',' + str(length) + ',' + str(count[0]) + '\n')
+    f.write(query_name + ',' + str(1) + ',' + str(length) + ',' + str(count[1]) + '\n')
+    f.write(query_name + ',' + str(2) + ',' + str(length) + ',' + str(count[2]) + '\n')
     f.close()
     return
 

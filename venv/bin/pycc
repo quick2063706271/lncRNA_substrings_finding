@@ -1,0 +1,3 @@
+#!/Users/yukuai/PycharmProjects/lncRNA_new/venv/bin/python
+from numba.pycc import main
+main()

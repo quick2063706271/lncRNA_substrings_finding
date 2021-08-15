@@ -229,19 +229,34 @@ def approximate_match(p, t, n):
     return list(all_matches)
 
 
-def approximate_match_two_strings(s1, s2, k, n):
+def approximate_match_two_strings(s1, s2, k, n, query_name, target_name):
+    file_name = './matches_' + str(n) + '.txt'
+    f = open(file_name, mode='a')
     match = 0
     for i in range(len(s1) - n + 1):
         n1 = s1[i: i + n]
-        match += len(approximate_match(n1, s2, k))
+        matches_lst = approximate_match(n1, s2, k)
+        match += len(matches_lst)
+        if len(matches_lst) > 0:
+            f.write(query_name + ',' + target_name + ',' + str(i) + ',' + str(matches_lst) + ',' + str(k) + ',' + '\n')
     return match
 
 
-def approximate_match_targets_query(query: str, targets: Dict[str, Seq], k, n):
+def approximate_match_targets_query(query: str, targets: Dict[str, Seq], k, n, query_name: str):
+    file_name = './results_' + str(n) + '.txt'
+    f = open(file_name, mode='a')
     match = 0
     for key in targets.keys():
-        match += approximate_match_two_strings(query, str(targets[key]), k, n)
+        match += approximate_match_two_strings(query, str(targets[key]), k, n, query_name, key)
+    f.write(query_name + ',' + str(0) + ',' + str(n) + ',' + str(match) + '\n')
     return match
+
+
+def approximate_match_targets_quries(queries: Dict[str, Seq], targets: Dict[str, Seq], k, n):
+    for key in queries.keys():
+        query = queries[key]
+        approximate_match_targets_query(str(query), targets, k, n, key)
+    return
 
 
 
@@ -266,17 +281,16 @@ read_query_from_json(query_sequence_file, query, query_name)
 read_target(intron_file, targets)
 read_relation_file(relation_file, targets_to_query)
 
-reversed_targets = {}
-for target_name in targets.keys():
-    reversed_targets[target_name] = targets[target_name].reverse_complement()
+reversed_query = {}
+for name in query.keys():
+    reversed_query[name] = query[name].reverse_complement()
 
 
 # print(approximate_match_two_strings(query['CR32218'],reversed_targets['intron_FBgn0001313:1_FBgn0001313:2'], 1, 15))
 
 # print(lcs_hamming_only_matches(query['CR32218'],reversed_targets['intron_FBgn0001313:1_FBgn0001313:2'], 1, 15, []))
 
-r = approximate_match_targets_query(query['CR32218'], reversed_targets, 1, 15)
-print(r)
+approximate_match_targets_quries(reversed_query, targets, 1, 19)
 
 
 

@@ -194,7 +194,7 @@ def read_query_from_json(file_name: str, query: Dict, query_name: List[str]) -> 
 
 def read_target(file_name: str, targets: Dict) -> None:
     for r in SeqIO.parse(file_name, "fasta"):
-        if r.description.__contains__("loc=Y") and r.name == 'Y':
+        if r.description.__contains__("loc=Y"):
             targets[r.name] = r.seq
 
 
@@ -315,7 +315,7 @@ if __name__ == '__main__':
     matches_lst = []
     lens = [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
     ks = [0, 1, 2]
-    targets_queries_lcs(query, targets, ks, lens, matches_lst, results)
+    # targets_queries_lcs(query, targets, ks, lens, matches_lst, results)
 
     # for length in lens:
     #     file = pd.read_csv('./matches_' + str(length) + '.txt', header=None)

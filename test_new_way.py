@@ -54,6 +54,8 @@ def reverse_targets_search(query: np.ndarray, targets: Dict[str, Seq], k, length
     return lcs_between_query_and_targets(query, reversed_int_targets, k, length, query_name)
 
 
+
+
 if __name__ == '__main__':
     query = {}  # long non-coding rn
     targets = {}

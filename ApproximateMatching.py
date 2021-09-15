@@ -209,7 +209,6 @@ def approximate_match(p, t, n):
         end = min((i+1)*segment_length, len(p))
         p_bm = BoyerMoore(p[start:end], alphabet='ACGTN')
         matches = boyer_moore(p[start:end], p_bm, t)
-        # Extend matching segments to see if whole p matches
         for m in matches:
             if m < start or m-start+len(p) > len(t):
                 continue
@@ -230,7 +229,7 @@ def approximate_match(p, t, n):
 
 
 def approximate_match_two_strings(s1, s2, k, n, query_name, target_name):
-    file_name = './matches_' + str(n) + '.txt'
+    file_name = './chromo_matches_' + str(n) + '.txt'
     f = open(file_name, mode='a')
     match = 0
     for i in range(len(s1) - n + 1):
@@ -243,12 +242,12 @@ def approximate_match_two_strings(s1, s2, k, n, query_name, target_name):
 
 
 def approximate_match_targets_query(query: str, targets: Dict[str, Seq], k, n, query_name: str):
-    file_name = './results_' + str(n) + '.txt'
+    file_name = './chromo_results_' + str(n) + '.txt'
     f = open(file_name, mode='a')
     match = 0
     for key in targets.keys():
         match += approximate_match_two_strings(query, str(targets[key]), k, n, query_name, key)
-    f.write(query_name + ',' + str(0) + ',' + str(n) + ',' + str(match) + '\n')
+    f.write(query_name + ',' + str(k) + ',' + str(n) + ',' + str(match) + '\n')
     return match
 
 
@@ -259,38 +258,39 @@ def approximate_match_targets_quries(queries: Dict[str, Seq], targets: Dict[str,
     return
 
 
+if __name__ == '__main__':
+
+    p = 'AACTTG'
+    t = 'CACTTAATTTG'
+    print(approximate_match(p, t, 2))
+
+    query = {}  # long non-coding rn
+    targets = {}
+    reversed_query = {}
+    targets_to_query = {}
+    query_name = []
+    query_file = ''
+    query_sequence_file = './ncRNA_genes_fb_2021_02.json'
+    chrom_file = './dmel-all-chromosome-r6.40.fasta'
+    intron_file = './dmel-all-intron-r6.40.fasta'
+    relation_file = ''
+    query_name_file = './lncRNAs.txt'
+    read_query_name(query_name_file, query_name)
+    read_query_from_json(query_sequence_file, query, query_name)
+    read_target(chrom_file, targets)
+    read_relation_file(relation_file, targets_to_query)
+
+    reversed_query = {}
+    for name in query.keys():
+        reversed_query[name] = query[name].reverse_complement()
 
 
-p = 'AACTTG'
-t = 'CACTTAATTTG'
-print(approximate_match(p, t, 2))
+    # print(approximate_match_two_strings(query['CR32218'],reversed_targets['intron_FBgn0001313:1_FBgn0001313:2'], 1, 15))
 
-query = {}  # long non-coding rn
-targets = {}
-reversed_query = {}
-targets_to_query = {}
-query_name = []
-query_file = ''
-query_sequence_file = './ncRNA_genes_fb_2021_02.json'
-chrom_file = './dmel-all-chromosome-r6.40.fasta'
-intron_file = './dmel-all-intron-r6.40.fasta'
-relation_file = ''
-query_name_file = './lncRNAs.txt'
-read_query_name(query_name_file, query_name)
-read_query_from_json(query_sequence_file, query, query_name)
-read_target(intron_file, targets)
-read_relation_file(relation_file, targets_to_query)
+    # print(lcs_hamming_only_matches(query['CR32218'],reversed_targets['intron_FBgn0001313:1_FBgn0001313:2'], 1, 15, []))
 
-reversed_query = {}
-for name in query.keys():
-    reversed_query[name] = query[name].reverse_complement()
-
-
-# print(approximate_match_two_strings(query['CR32218'],reversed_targets['intron_FBgn0001313:1_FBgn0001313:2'], 1, 15))
-
-# print(lcs_hamming_only_matches(query['CR32218'],reversed_targets['intron_FBgn0001313:1_FBgn0001313:2'], 1, 15, []))
-
-approximate_match_targets_quries(reversed_query, targets, 1, 19)
+    for length in range(24, 26):
+        approximate_match_targets_quries(reversed_query, targets, 2, length)
 
 
 

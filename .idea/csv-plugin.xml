@@ -3,35 +3,56 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="/matches_21.csv">
+        <entry key="/Y_chromo_intron_frame.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/matches_22.csv">
+        <entry key="/hits/data_19.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/matches_23.csv">
+        <entry key="/hits/data_20.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/matches_24.csv">
+        <entry key="/hits/data_25.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/result.csv">
+        <entry key="/hits/intron_data_19.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/hits/intron_data_20.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/hits/intron_data_21.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/hits/results_19.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -52,14 +73,42 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="/results_introns.csv">
+        <entry key="/reversed_hits/data_19.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="/results_ychromo.csv">
+        <entry key="/reversed_hits/data_20.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/reversed_hits/intron_data_19.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/reversed_hits/intron_data_23.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/reversed_hits/intron_data_24.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/reversed_hits/intron_data_25.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
